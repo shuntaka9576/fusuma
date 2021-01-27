@@ -1,5 +1,5 @@
-import Prism from 'prismjs';
 import '../../assets/style/code.css';
+import Prism from 'prismjs';
 
 Prism.highlightAll();
 

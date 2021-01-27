@@ -21,6 +21,79 @@ function mdxPlugin() {
       fusumaProps: [],
     };
 
+    {
+      let slidesInSameMarkdown = [];
+      const slides = [];
+
+      visit(tree.children, null, (nodes) => {
+        for (let i = 0; i < nodes.length; i++) {
+          const { type, value, lang, meta, children } = nodes[i];
+
+          if (type === 'thematicBreak') {
+            slides.push(slidesInSameMarkdown);
+            slidesInSameMarkdown = [];
+
+            return;
+          }
+
+          if (type === 'comment') {
+            const [prefix, ...rest] = value.trim().split(':');
+            const attr = rest.map((r) => r.trim());
+
+            if (prefix === 'qr') {
+              slidesInSameMarkdown.push(
+                ...[
+                  n,
+                  {
+                    ...n,
+                    ...transformQrToJSX(attr),
+                  },
+                ]
+              );
+
+              return;
+            }
+
+            if (prefix === 'screen') {
+              slidesInSameMarkdown.push(
+                ...[
+                  n,
+                  {
+                    ...n,
+                    ...transformScreenToJSX(videoId),
+                  },
+                ]
+              );
+              ++videoId;
+              return;
+            }
+
+            if (prefix === 'executable-code') {
+              const nextNode = nodes[i + 1];
+
+              if (nextNode.type === 'code' && ['js', 'javascript'].includes(nextNode.lang)) {
+                slidesInSameMarkdown.push(
+                  ...[
+                    n,
+                    {
+                      ...n,
+                      ...transformExecJSCodeButtonToJSX(nextNode.value),
+                    },
+                  ]
+                );
+              }
+
+              return;
+            }
+          }
+
+          if (node.children) {
+            // 再帰
+          }
+        }
+      });
+    }
+
     // TODO: refactor using visit
     tree.children.forEach((n, i) => {
       const { type, value, lang, meta } = n;
